@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
-import Select from 'react-select'; // Implementasi React Select
+import Select from 'react-select';
 
 export default function Create({ auth, categories, vendors }) {
     const { data, setData, post, processing, errors } = useForm({

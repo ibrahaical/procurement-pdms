@@ -25,7 +25,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // 4. User Management - HANYA Administrator yang boleh akses
     Route::middleware(['role:Administrator'])->group(function () {
-        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::resource('users', UserController::class);
     });
 
     // Bawaan Breeze
