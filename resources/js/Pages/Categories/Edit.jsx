@@ -1,22 +1,22 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, Link } from '@inertiajs/react';
 
-export default function Edit({ auth, role }) {
+export default function Edit({ auth, category }) {
     const { data, setData, put, processing, errors } = useForm({
-        name: role.name || '',
+        name: category.name || '',
     });
 
     const submit = (e) => {
         e.preventDefault();
-        put(route('roles.update', role.id));
+        put(route('categories.update', category.id));
     };
 
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl md:text-2xl text-gray-800 leading-tight">Edit Role</h2>}
+            header={<h2 className="font-semibold text-xl md:text-2xl text-gray-800 leading-tight">Edit Kategori</h2>}
         >
-            <Head title="Edit Role" />
+            <Head title="Edit Kategori" />
 
             <div className="py-12 md:py-16">
                 <div className="max-w-3xl mx-auto px-4 sm:px-6">
@@ -25,7 +25,7 @@ export default function Edit({ auth, role }) {
 
                             <form onSubmit={submit} className="space-y-6">
                                 <div>
-                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nama Role</label>
+                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nama Kategori</label>
                                     <input
                                         id="name"
                                         type="text"
@@ -43,9 +43,9 @@ export default function Edit({ auth, role }) {
                                         disabled={processing}
                                         className="inline-flex justify-center items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50"
                                     >
-                                        {processing ? 'Memperbarui...' : 'Update Role'}
+                                        {processing ? 'Memperbarui...' : 'Update Kategori'}
                                     </button>
-                                    <Link href={route('roles.index')} className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
+                                    <Link href={route('categories.index')} className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
                                         Batal
                                     </Link>
                                 </div>

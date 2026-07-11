@@ -1,20 +1,25 @@
 import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, useForm } from "@inertiajs/react";
+import { Head, useForm, Link } from "@inertiajs/react";
 import Select from "react-select";
 
-export default function Create({ auth, categories, vendors }) {
+export default function Edit({ auth, procurement, categories, vendors }) {
+    const formattedDate = procurement.deadline_date
+        ? procurement.deadline_date.replace(" ", "T").slice(0, 16)
+        : "";
+
     const { data, setData, post, processing, errors } = useForm({
-        title: "",
-        category_id: null,
-        vendor_id: null,
-        deadline_date: "",
+        _method: "PUT", // Wajib untuk simulasi form put saat mengirim file di Laravel
+        title: procurement.title || "",
+        category_id: procurement.category_id || null,
+        vendor_id: procurement.vendor_id || null,
+        deadline_date: formattedDate,
+        is_approved: procurement.is_approved ? "1" : "0", // Format untuk select/radio status
         document: null,
     });
 
     const [clientError, setClientError] = useState("");
 
-    // Mapping data untuk kebutuhan format React Select
     const categoryOptions = categories.map((cat) => ({
         value: cat.id,
         label: cat.name,
@@ -24,12 +29,19 @@ export default function Create({ auth, categories, vendors }) {
         label: ven.name,
     }));
 
+    // Menentukan default value Select2 berdasarkan data saat ini
+    const defaultCategory = categoryOptions.find(
+        (opt) => opt.value === data.category_id,
+    );
+    const defaultVendor = vendorOptions.find(
+        (opt) => opt.value === data.vendor_id,
+    );
+
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         setClientError("");
 
         if (file) {
-            // Validasi React (Frontend Validation) [cite: 26]
             if (file.type !== "application/pdf") {
                 setClientError("Dokumen harus berformat PDF.");
                 setData("document", null);
@@ -37,7 +49,6 @@ export default function Create({ auth, categories, vendors }) {
             }
 
             const fileSizeKB = file.size / 1024;
-            // Validasi ukuran 100kb - 500kb [cite: 115]
             if (fileSizeKB < 100 || fileSizeKB > 500) {
                 setClientError(
                     `Ukuran file tidak valid (${Math.round(fileSizeKB)} KB). Wajib di antara 100 KB - 500 KB.`,
@@ -54,7 +65,8 @@ export default function Create({ auth, categories, vendors }) {
         e.preventDefault();
         if (clientError) return;
 
-        post(route("procurements.store"));
+        // Gunakan post karena kita telah menyisipkan _method: 'PUT' untuk mengakali batasan upload file HTML
+        post(route("procurements.update", procurement.id));
     };
 
     return (
@@ -62,15 +74,14 @@ export default function Create({ auth, categories, vendors }) {
             user={auth.user}
             header={
                 <h2 className="font-semibold text-xl md:text-2xl text-gray-800 leading-tight">
-                    Buat Pengadaan Baru
+                    Edit Pengadaan
                 </h2>
             }
         >
-            <Head title="Buat Pengadaan" />
+            <Head title="Edit Pengadaan" />
 
-            {/* Container responsif & spacing monoton naik (py-12 ke py-16) */}
             <div className="py-12 md:py-16">
-                <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-3xl mx-auto px-4 sm:px-6">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 md:p-8 text-gray-900">
                             <form
@@ -78,7 +89,6 @@ export default function Create({ auth, categories, vendors }) {
                                 className="space-y-6"
                                 encType="multipart/form-data"
                             >
-                                {/* Input Judul */}
                                 <div>
                                     <label
                                         htmlFor="title"
@@ -103,7 +113,6 @@ export default function Create({ auth, categories, vendors }) {
                                     )}
                                 </div>
 
-                                {/* React Select Category  */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">
                                         Kategori
@@ -111,6 +120,7 @@ export default function Create({ auth, categories, vendors }) {
                                     <div className="mt-2">
                                         <Select
                                             options={categoryOptions}
+                                            defaultValue={defaultCategory}
                                             onChange={(option) =>
                                                 setData(
                                                     "category_id",
@@ -128,7 +138,6 @@ export default function Create({ auth, categories, vendors }) {
                                     )}
                                 </div>
 
-                                {/* React Select Vendor  */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">
                                         Vendor
@@ -136,6 +145,7 @@ export default function Create({ auth, categories, vendors }) {
                                     <div className="mt-2">
                                         <Select
                                             options={vendorOptions}
+                                            defaultValue={defaultVendor}
                                             onChange={(option) =>
                                                 setData(
                                                     "vendor_id",
@@ -153,7 +163,6 @@ export default function Create({ auth, categories, vendors }) {
                                     )}
                                 </div>
 
-                                {/* Input Deadline Date */}
                                 <div>
                                     <label
                                         htmlFor="deadline_date"
@@ -181,13 +190,41 @@ export default function Create({ auth, categories, vendors }) {
                                     )}
                                 </div>
 
-                                {/* Upload Document Validation [cite: 115] */}
+                                <div>
+                                    <label
+                                        htmlFor="is_approved"
+                                        className="block text-sm font-medium text-gray-700"
+                                    >
+                                        Status Approval
+                                    </label>
+                                    <select
+                                        id="is_approved"
+                                        value={data.is_approved}
+                                        onChange={(e) =>
+                                            setData(
+                                                "is_approved",
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base"
+                                    >
+                                        <option value="0">Pending</option>
+                                        <option value="1">Approved</option>
+                                    </select>
+                                    {errors.is_approved && (
+                                        <p className="mt-1 text-sm text-red-600">
+                                            {errors.is_approved}
+                                        </p>
+                                    )}
+                                </div>
+
                                 <div>
                                     <label
                                         htmlFor="document"
                                         className="block text-sm font-medium text-gray-700"
                                     >
-                                        Dokumen Pendukung (PDF, 100 KB - 500 KB)
+                                        Ganti Dokumen (PDF, 100 KB - 500 KB) —
+                                        Opsional
                                     </label>
                                     <input
                                         id="document"
@@ -195,8 +232,11 @@ export default function Create({ auth, categories, vendors }) {
                                         accept="application/pdf"
                                         onChange={handleFileChange}
                                         className="mt-2 block w-full text-base text-gray-900 border border-gray-300 rounded-md cursor-pointer bg-gray-50 focus:outline-none"
-                                        required
                                     />
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Kosongkan jika tidak ingin mengganti
+                                        file PDF saat ini.
+                                    </p>
                                     {clientError && (
                                         <p className="mt-1 text-sm text-red-600">
                                             {clientError}
@@ -209,17 +249,22 @@ export default function Create({ auth, categories, vendors }) {
                                     )}
                                 </div>
 
-                                {/* Submit Button */}
-                                <div className="pt-4">
+                                <div className="pt-4 flex items-center gap-4">
                                     <button
                                         type="submit"
                                         disabled={processing || !!clientError}
                                         className="inline-flex justify-center items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50"
                                     >
                                         {processing
-                                            ? "Menyimpan..."
-                                            : "Simpan Transaksi"}
+                                            ? "Memperbarui..."
+                                            : "Update Transaksi"}
                                     </button>
+                                    <Link
+                                        href={route("procurements.index")}
+                                        className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+                                    >
+                                        Batal
+                                    </Link>
                                 </div>
                             </form>
                         </div>
