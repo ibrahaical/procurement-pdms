@@ -3,7 +3,13 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, useForm, Link } from "@inertiajs/react";
 import Select from "react-select";
 
-export default function Edit({ auth, procurement, categories, vendors }) {
+export default function Edit({
+    auth,
+    procurement,
+    categories,
+    vendors,
+    audits,
+}) {
     const formattedDate = procurement.deadline_date
         ? procurement.deadline_date.replace(" ", "T").slice(0, 16)
         : "";
@@ -267,6 +273,137 @@ export default function Edit({ auth, procurement, categories, vendors }) {
                                     </Link>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+
+                    {/* Audit Trail */}
+                    <div className="mt-8 bg-white overflow-hidden shadow-sm sm:rounded-lg border-t-4 border-indigo-500">
+                        <div className="p-6 md:p-8">
+                            <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-4">
+                                Rekam Jejak Perubahan (Audit Trail)
+                            </h3>
+                            <p className="text-sm text-gray-600 mb-6">
+                                Log di bawah ini direkam secara otomatis oleh
+                                sistem untuk menjaga akuntabilitas data (Siapa,
+                                Kapan, dan Apa yang diubah).
+                            </p>
+
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse text-sm md:text-base text-gray-700">
+                                    <thead className="bg-gray-100">
+                                        <tr>
+                                            <th className="py-3 px-4 font-semibold border-b">
+                                                Waktu (WIB)
+                                            </th>
+                                            <th className="py-3 px-4 font-semibold border-b">
+                                                Aksi
+                                            </th>
+                                            <th className="py-3 px-4 font-semibold border-b">
+                                                Dilakukan Oleh
+                                            </th>
+                                            <th className="py-3 px-4 font-semibold border-b">
+                                                Detail Perubahan
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {audits && audits.length > 0 ? (
+                                            audits.map((audit) => (
+                                                <tr
+                                                    key={audit.id}
+                                                    className="border-b hover:bg-gray-50 transition-colors duration-150"
+                                                >
+                                                    <td className="py-3 px-4 align-top whitespace-nowrap">
+                                                        {new Date(
+                                                            audit.created_at,
+                                                        ).toLocaleString(
+                                                            "id-ID",
+                                                        )}
+                                                    </td>
+                                                    <td className="py-3 px-4 align-top">
+                                                        <span
+                                                            className={`inline-block px-2 py-1 text-xs font-semibold rounded-md uppercase ${
+                                                                audit.event ===
+                                                                "created"
+                                                                    ? "bg-green-100 text-green-800"
+                                                                    : audit.event ===
+                                                                        "updated"
+                                                                      ? "bg-blue-100 text-blue-800"
+                                                                      : "bg-red-100 text-red-800"
+                                                            }`}
+                                                        >
+                                                            {audit.event}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-3 px-4 align-top font-medium">
+                                                        {audit.user
+                                                            ? audit.user.name
+                                                            : "Sistem / Guest"}
+                                                    </td>
+                                                    <td className="py-3 px-4 align-top">
+                                                        {audit.event ===
+                                                        "created" ? (
+                                                            <span className="text-gray-500 italic">
+                                                                Data pengadaan
+                                                                pertama kali
+                                                                dibuat.
+                                                            </span>
+                                                        ) : (
+                                                            <div className="bg-gray-50 p-3 rounded-md border border-gray-200 font-mono text-xs overflow-x-auto">
+                                                                {/* Menampilkan apa saja field yang berubah */}
+                                                                {Object.keys(
+                                                                    audit.new_values,
+                                                                ).map((key) => (
+                                                                    <div
+                                                                        key={
+                                                                            key
+                                                                        }
+                                                                        className="mb-2 last:mb-0"
+                                                                    >
+                                                                        <span className="text-gray-900 font-bold">
+                                                                            {
+                                                                                key
+                                                                            }
+
+                                                                            :{" "}
+                                                                        </span>
+                                                                        <span className="text-red-500 line-through mr-2">
+                                                                            {JSON.stringify(
+                                                                                audit
+                                                                                    .old_values[
+                                                                                    key
+                                                                                ],
+                                                                            ) ||
+                                                                                "null"}
+                                                                        </span>
+                                                                        <span className="text-green-600 font-bold">
+                                                                            {JSON.stringify(
+                                                                                audit
+                                                                                    .new_values[
+                                                                                    key
+                                                                                ],
+                                                                            )}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td
+                                                    colSpan="4"
+                                                    className="py-6 px-4 text-center text-gray-500 italic"
+                                                >
+                                                    Belum ada rekam jejak.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

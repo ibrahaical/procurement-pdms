@@ -12,16 +12,36 @@ use Inertia\Inertia;
 class ProcurementController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
-        $procurements = Procurement::with(['category', 'vendor' => function ($query) {
-            $query->withTrashed();
-        }])->latest()->get();
+        $query = Procurement::with(['category', 'vendor' => function ($q) {
+            $q->withTrashed();
+        }]);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('title', 'like', "%{$search}%")
+                ->orWhereHas('category', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_approved', $request->status === 'approved' ? 1 : 0);
+        }
+
+        $sortField = $request->input('sort_field', 'created_at');
+        $sortDirection = $request->input('sort_direction', 'desc');
+        $query->orderBy($sortField, $sortDirection);
+
+        $procurements = $query->paginate(10)->withQueryString();
 
         return Inertia::render('Procurements/Index', [
-            'procurements' => $procurements
+            'procurements' => $procurements,
+            'filters' => $request->only(['search', 'status', 'sort_field', 'sort_direction'])
         ]);
     }
+
     public function create()
     {
         $categories = Category::select('id', 'name')->get();
@@ -71,10 +91,13 @@ class ProcurementController extends Controller
         $categories = Category::select('id', 'name')->get();
         $vendors = Vendor::select('id', 'name')->get();
 
+        $procurement->load(['audits.user']);
+
         return Inertia::render('Procurements/Edit', [
             'procurement' => $procurement,
             'categories' => $categories,
             'vendors' => $vendors,
+            'audits' => $procurement->audits,
         ]);
     }
 
