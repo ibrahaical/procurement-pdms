@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\ProcurementController;
+use App\Http\Controllers\VendorExcelController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -32,6 +33,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::post('/vendors/export', [VendorExcelController::class, 'export'])->name('vendors.export');
+    Route::post('/vendors/import', [VendorExcelController::class, 'import'])->name('vendors.import');
 });
 
 require __DIR__ . '/auth.php';
