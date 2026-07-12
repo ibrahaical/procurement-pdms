@@ -8,6 +8,7 @@ use App\Http\Controllers\VendorController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\VendorExcelController;
 use App\Http\Controllers\CategoryExcelController;
+use App\Http\Controllers\ProcurementExcelController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -40,6 +41,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/categories/export', [CategoryExcelController::class, 'export'])->name('categories.export');
     Route::post('/categories/import', [CategoryExcelController::class, 'import'])->name('categories.import');
+
+    Route::post('/procurements/export', [ProcurementExcelController::class, 'export'])->name('procurements.export');
+    Route::post('/procurements/import', [ProcurementExcelController::class, 'import'])->name('procurements.import');
 });
 
 require __DIR__ . '/auth.php';
